@@ -1,0 +1,22 @@
+linguaggi da mappare:
+
+- java;
+- c;
+- c++;
+- objective c;
+- c sharp;
+- javascript;
+- php;
+- python;
+- visual basic;
+- visual basic.NET;
+- delphiObject pascal;
+- perl;
+- transact SQL;
+- MATLAB;
+- ABAP;
+- f sharp;
+- PL/SQL;
+- ruby;
+- R;
+- pascal;
