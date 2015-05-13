@@ -1,1 +1,1 @@
-developer,enterprise,programmer,programming,EE,
+developer,enterprise,programmer,programming,EE,app,application,language,programmation,software,engeneer,web,analist,polimorphism,lesson,lessons
