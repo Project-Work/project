@@ -11,7 +11,7 @@ public class ConnessioneDb {
 			String driver = "org.postgresql.Driver";
 			Class.forName(driver);
 			// Creiamo la stringa di connessione
-			String url = "jdbc:postgresql://192.168.0.23:5432/projectwork";
+			String url = "jdbc:postgresql://192.168.101.108:5432/projectwork";
 			// Otteniamo una connessione con username e password
 			Connection connessione = DriverManager.getConnection(url,
 					"ecommerce", "password");
