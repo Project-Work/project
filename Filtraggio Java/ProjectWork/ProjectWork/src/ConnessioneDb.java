@@ -76,12 +76,13 @@ public class ConnessioneDb {
 			// Connessione al DB
 			String driver = "org.postgresql.Driver";
 			Class.forName(driver);
-			String url = "jdbc:postgresql://192.168.1.113:5432/projectwork";
+			String url = "jdbc:postgresql://192.168.0.15:5432/projectwork";
 			Connection connessione = DriverManager.getConnection(url,
 					"projectwork", "projectwork");
 			
 			SimpleDateFormat month  = new SimpleDateFormat("MM");
 			SimpleDateFormat year  = new SimpleDateFormat("yyyy");
+			String date = year.format(new Date()) + "-" + month.format(new Date());
 			
 			Statement cmd = connessione.createStatement();
 			ArrayList<Tweet> tweets = getTweets(cmd);
@@ -96,10 +97,10 @@ public class ConnessioneDb {
 
 					// controllo del linguaggio e conteggio
 					if ((text.contains("" + language.getLanguage() + " ") || text.contains("" + language.getLanguage() + "!") ||
-							text.contains(" " + language.getLanguage() + ",") || text.contains("" + language.getLanguage() + ":") ||
+							text.contains("" + language.getLanguage() + ",") || text.contains("" + language.getLanguage() + ":") ||
 							text.contains("" + language.getLanguage() + "'") || text.contains("" + language.getLanguage() + "?") || 
-							text.contains(" " + language.getLanguage() + ".")
-							|| text.contains(" " + language.getLanguage() + "#") || text
+							text.contains("" + language.getLanguage() + ".") || 
+							text.contains("" + language.getLanguage() + "#") || text
 								.contains("#" + language.getLanguage() + " "))) {
 						count++;
 					}
@@ -110,13 +111,13 @@ public class ConnessioneDb {
 //						+ language.getLanguage() + " count: " + count);
 
 				// estrazione riga della tabella analysis con l'id del linguaggio, l'anno corrente e il mese corrente
-				String query = "SELECT count, year, month FROM analysis WHERE id_language = " + language.getId() + " AND year = " + year.format(new Date()) + " AND month = " + month.format(new Date());
+				String query = "SELECT count, date FROM analysis WHERE id_language = " + language.getId() + " AND date = '" + date + "'";
 				ResultSet analysis = cmd.executeQuery(query);
 				
 				 if (!analysis.next()) { 
 					 
 					 //inserimento nella tabella analysis se non esiste l'elemento con l'id della lingua presente, nell'anno corrente e nel mese corrente
-					String queryIns = "INSERT INTO analysis (id_language, count, year, month) VALUES (" + language.getId() +", " + count + ", " + year.format(new Date())+", "+ month.format(new Date()) + ")";
+					String queryIns = "INSERT INTO analysis (id_language, count, date) VALUES (" + language.getId() +", " + count + ", '" + date + "')";
 					cmd.executeUpdate(queryIns);
 					System.out.println("ELEMENTI INSERITI NELLA TABELLA ANALYSIS");
 					
@@ -125,7 +126,7 @@ public class ConnessioneDb {
 					 
 					 // update tabella analysis se l'id è presente, anno in corso e mese in corso
 					 count += analysis.getInt("count");
-					 String queryUpd = "UPDATE analysis SET count = " + count + " WHERE id_language = " + language.getId()+ " AND year = " + year.format(new Date()) + " AND month = " + month.format(new Date()); 
+					 String queryUpd = "UPDATE analysis SET count = " + count + " WHERE id_language = " + language.getId()+ " AND date = '" + date + "'"; 
 					 cmd.executeUpdate(queryUpd);
 					 System.out.println("ELEMENTI DELLA TABELLA ANALYSIS MODIFICATI");
 				
