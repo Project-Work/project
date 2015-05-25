@@ -1,0 +1,6 @@
+MODIFICHE DA APPORTARE A JAVA
+
+- fare due progetti separati per estrazione tweet e cleaning tweet.
+- migliorare il codice, ovvero mettere il codice dentro metodi, fare classe, ecc.
+- fare un pò di log
+- problema: lavoriamo tutto su memoria. MODIFICARE CODICE!!
