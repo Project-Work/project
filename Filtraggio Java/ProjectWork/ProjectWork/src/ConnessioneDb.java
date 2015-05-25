@@ -76,7 +76,7 @@ public class ConnessioneDb {
 			// Connessione al DB
 			String driver = "org.postgresql.Driver";
 			Class.forName(driver);
-			String url = "jdbc:postgresql://52.17.223.138:5432/projectwork";
+			String url = "jdbc:postgresql://127.0.0.1:5432/projectwork";
 			Connection connessione = DriverManager.getConnection(url,
 					"projectwork", "password");
 			
@@ -117,7 +117,7 @@ public class ConnessioneDb {
 				 if (!analysis.next()) { 
 					 
 					 //inserimento nella tabella analysis se non esiste l'elemento con l'id della lingua presente, nell'anno corrente e nel mese corrente
-					String queryIns = "INSERT INTO analysis (id_lang, counter, date) VALUES (" + language.getId() +", " + count + ", '" + date + "')";
+					String queryIns = "INSERT INTO european_analysis (id_lang, counter, date) VALUES (" + language.getId() +", " + count + ", '" + date + "')";
 					cmd.executeUpdate(queryIns);
 					System.out.println("ELEMENTI INSERITI NELLA TABELLA ANALYSIS");
 					
@@ -126,7 +126,7 @@ public class ConnessioneDb {
 					 
 					 // update tabella analysis se l'id è presente, anno in corso e mese in corso
 					 count += analysis.getInt("counter");
-					 String queryUpd = "UPDATE analysis SET counter = " + count + " WHERE id_lang = " + language.getId()+ " AND date = '" + date + "'"; 
+					 String queryUpd = "UPDATE european_analysis SET counter = " + count + " WHERE id_lang = " + language.getId()+ " AND date = '" + date + "'"; 
 					 cmd.executeUpdate(queryUpd);
 					 System.out.println("ELEMENTI DELLA TABELLA ANALYSIS MODIFICATI");
 				
