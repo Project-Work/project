@@ -50,7 +50,7 @@ public class JCleaner {
 					}
 				}
 				if(whiteList && !blackList){
-					cmdCleanTweet.setInt(0, rsTrashTweet.getInt("id"));
+					cmdCleanTweet.setInt(2, rsTrashTweet.getInt("id"));
 				}
 			}
 			
