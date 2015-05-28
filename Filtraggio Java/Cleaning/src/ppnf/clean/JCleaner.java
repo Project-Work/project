@@ -17,9 +17,15 @@ public class JCleaner {
 		try {
 
 			connection.setAutoCommit(false);
-
-			Statement cmdTrashTweet = connection.createStatement();
-			String queryTrashTweet = "SELECT id, text FROM trash_tweet";
+			
+			Statement cmdBlock = connection.createStatement();
+			String queryBlock = "SELECT value FROM block_cleaner";
+			ResultSet value = cmdBlock.executeQuery(queryBlock);
+			value.next();
+			int block = value.getInt("value");
+			
+			Statement cmdTrashTweet = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			String queryTrashTweet = "SELECT id, text FROM trash_tweet WHERE id > " + block;
 			ResultSet rsTrashTweet = cmdTrashTweet.executeQuery(queryTrashTweet);
 
 			Statement cmdBlackList = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -35,7 +41,7 @@ public class JCleaner {
 
 			boolean whiteList;
 			boolean blackList;
-			int tmp = 0; //remove IT !!!
+			
 			while (rsTrashTweet.next()) {
 
 				whiteList = false;
@@ -45,7 +51,7 @@ public class JCleaner {
 				
 				while (rsBlackList.next()) {
 					String word = rsBlackList.getString("word");
-					if (text.contains(word)) {
+					if (text.contains("#" + word + " ") ||text.contains(" " + word + " ")) {
 						blackList = true;
 					}					
 				}
@@ -53,7 +59,7 @@ public class JCleaner {
 				
 				while (rsWhiteList.next()) {
 					String word = rsWhiteList.getString("word");
-					if (text.contains(word)) {
+					if (text.contains("#" + word + " ") ||text.contains(" " + word + " ")) {
 						whiteList = true;
 					}
 					
@@ -61,14 +67,15 @@ public class JCleaner {
 				rsWhiteList.first();
 				
 				if (whiteList && !blackList) {
-					//cmdCleanTweet.setInt(1, rsTrashTweet.getInt("id"));
-					//cmdCleanTweet.executeUpdate();
-					System.out.println(text);
-					tmp++;
-					
+					cmdCleanTweet.setInt(1, rsTrashTweet.getInt("id"));
+					cmdCleanTweet.executeUpdate();		
 				}					
 			}
-			System.out.println(tmp);
+			rsTrashTweet.previous();
+			int last = rsTrashTweet.getInt("id");
+			String queryUpdBlock = "UPDATE block_cleaner SET value = " + last + " WHERE value = " + block;
+			cmdBlock.executeUpdate(queryUpdBlock);
+			
 			connection.commit();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
