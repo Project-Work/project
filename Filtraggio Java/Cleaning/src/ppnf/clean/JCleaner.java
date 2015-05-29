@@ -14,25 +14,25 @@ public class JCleaner {
 
 		Connection connection = JConnection.connect();
 
-		try {
+		try(Statement cmdBlock = connection.createStatement();Statement cmdTrashTweet = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);Statement cmdBlackList = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);Statement cmdWhiteList = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
 			connection.setAutoCommit(false);
 			
-			Statement cmdBlock = connection.createStatement();
+			
 			String queryBlock = "SELECT value FROM block_cleaner";
 			ResultSet value = cmdBlock.executeQuery(queryBlock);
 			value.next();
 			int block = value.getInt("value");
 			
-			Statement cmdTrashTweet = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			
 			String queryTrashTweet = "SELECT id, text FROM trash_tweet WHERE id > " + block;
 			ResultSet rsTrashTweet = cmdTrashTweet.executeQuery(queryTrashTweet);
 
-			Statement cmdBlackList = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			
 			String queryBlackList = "SELECT word FROM blacklist";
 			ResultSet rsBlackList = cmdBlackList.executeQuery(queryBlackList);
 
-			Statement cmdWhiteList = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			
 			String queryWhiteList = "SELECT word FROM whitelist";
 			ResultSet rsWhiteList = cmdWhiteList.executeQuery(queryWhiteList);
 
@@ -51,7 +51,7 @@ public class JCleaner {
 				
 				while (rsBlackList.next()) {
 					String word = rsBlackList.getString("word");
-					if (text.contains("#" + word + " ") ||text.contains(" " + word + " ")) {
+					if (text.contains(" " + word + " ")) {
 						blackList = true;
 					}					
 				}
@@ -59,7 +59,7 @@ public class JCleaner {
 				
 				while (rsWhiteList.next()) {
 					String word = rsWhiteList.getString("word");
-					if (text.contains("#" + word + " ") ||text.contains(" " + word + " ")) {
+					if (text.contains(" " + word + " ")) {
 						whiteList = true;
 					}
 					
@@ -77,6 +77,7 @@ public class JCleaner {
 			cmdBlock.executeUpdate(queryUpdBlock);
 			
 			connection.commit();
+			cmdCleanTweet.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
