@@ -2,7 +2,6 @@ package ppnf.analysis.country;
 
 import java.sql.Connection;
 import java.util.Date;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -10,34 +9,44 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import ppnf.conn.JConnection;
+import ppnf.logging.Logging;
 
 public class JCountryAnalyzer {
 
-	public static void insert(PreparedStatement cmdInsert, Country country,
-			Language language, int counter) {
+	public static void update(Statement cmdUpdate, String id_country,
+			int id_language, int counter, int year, int month){
+		String queryUpdate = "UPDATE countries_analysis SET counter = " + counter + " WHERE country_id='" +id_country + "' AND language_id=" + id_language + " AND year=" + year + " AND month=" + month;
 		try {
-			SimpleDateFormat sdfMonth = new SimpleDateFormat("MM");
-			int month = Integer.parseInt(sdfMonth.format(new Date()));
-			SimpleDateFormat sdfYear = new SimpleDateFormat("yyyy");
-			int year = Integer.parseInt(sdfYear.format(new Date()));
-			cmdInsert.setString(1, country.getId());
-			cmdInsert.setInt(2, language.getId());
-			cmdInsert.setInt(3, counter);
-			cmdInsert.setInt(4, month);
-			cmdInsert.setInt(5, year);
-			
-			
+			cmdUpdate.executeUpdate(queryUpdate);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			// TODO Auto-generated catch block
+			Logging.logging(e.getMessage());
+		}
+	}
+	
+	
+	public static void insert(Statement cmdInsert, String id_country,
+			int id_language, int counter, int year, int month) {
+		String queryInsert = "INSERT INTO countries_analysis(country_id, language_id, counter, year, month) VALUES ('" + id_country +"', "+ id_language + ", " + counter+", " + year+", "+ month+ " )";
+		try {	
+				cmdInsert.executeUpdate(queryInsert);
+		} catch (SQLException e) {
+			Logging.logging(e.getMessage());
 		}
 	}
 
+	
+	
 	public static void analyze(ArrayList<Country> countries,
 			ArrayList<Language> languages, ResultSet rsCleanTweet,
-			PreparedStatement cmdInsert, int block, Statement cmdBlock) {
+			Statement cmdInsert, Statement cmdUpdate, Statement cmdAnalysis, int block, Statement cmdBlock) {
 
 		int counter = 0;
 		Tweet tweet;
+		SimpleDateFormat sdfMonth = new SimpleDateFormat("MM");
+		int month = Integer.parseInt(sdfMonth.format(new Date()));
+		SimpleDateFormat sdfYear = new SimpleDateFormat("yyyy");
+		int year = Integer.parseInt(sdfYear.format(new Date()));
 
 		try {
 			for (Country country : countries) {
@@ -49,18 +58,28 @@ public class JCountryAnalyzer {
 						if (language.getLanguage().equals("java")
 								&& !tweet.getText().contains("javascript")
 								&& tweet.getText().contains("java")
-								&& tweet.getId_country().equals(country)) {
+								&& tweet.getId_country().equals(country.getId())) {
 							counter++;
 						}
 						if (!language.getLanguage().equals("java")
 								&& tweet.getText().contains(
 										language.getLanguage())
-								&& tweet.getId_country().equals(country)) {
+								&& tweet.getId_country().equals(country.getId())) {
 							counter++;
 						}
 					}
-
-					insert(cmdInsert,country,language, counter);
+					 
+					String queryAnalysis = "SELECT * FROM countries_analysis WHERE country_id = '"+ country.getId() + "' AND language_id = " + language.getId() + " AND year = " + year + " AND month = " + month;
+					ResultSet rsAnalysis =  cmdAnalysis.executeQuery(queryAnalysis);
+					
+					if(rsAnalysis.next()){
+						if (counter != 0){
+						counter += rsAnalysis.getInt("counter");
+						update(cmdUpdate, country.getId(), language.getId(), counter, year, month);
+						}
+					}
+					else
+						insert(cmdInsert,country.getId(),language.getId(), counter, year, month);
 					
 					rsCleanTweet.previous();
 					int last = rsCleanTweet.getInt("id");
@@ -74,7 +93,7 @@ public class JCountryAnalyzer {
 				}
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Logging.logging(e.getMessage());
 		}
 	}
 
@@ -88,14 +107,18 @@ public class JCountryAnalyzer {
 				Statement cmdLanguage = connection.createStatement();
 				Statement cmdCleanTweet = connection.createStatement(
 						ResultSet.TYPE_SCROLL_INSENSITIVE,
-						ResultSet.CONCUR_READ_ONLY);) {
+						ResultSet.CONCUR_READ_ONLY); Statement cmdInsert = connection.createStatement();
+				Statement cmdUpdate = connection.createStatement(); Statement cmdAnalysis = connection.createStatement();) {
+			
 			connection.setAutoCommit(false);
-
+			
+			//block
 			String qryBlock = "SELECT value FROM block_analysis";
 			ResultSet value = cmdBlock.executeQuery(qryBlock);
 			value.next();
 			int block = value.getInt("value");
 
+			//countries
 			String qryCountry = "SELECT id, country FROM countries";
 			ResultSet rsCountry = cmdCountry.executeQuery(qryCountry);
 
@@ -105,6 +128,7 @@ public class JCountryAnalyzer {
 						.getString("country")));
 			}
 
+			//language
 			String qryLanguage = "SELECT id, language FROM programming_languages";
 			ResultSet rsLanguage = cmdLanguage.executeQuery(qryLanguage);
 
@@ -114,20 +138,22 @@ public class JCountryAnalyzer {
 						.getString("language")));
 			}
 
-			String qryCleanTweet = "SELECT trash_tweet.text, trash_tweet.id_country FROM trash_tweet, clean_tweet WHERE trash_tweet.id = clean_tweet.id_trash AND clean_tweet.id > "
+			//clean_tweets
+			String qryCleanTweet = "SELECT trash_tweet.text, trash_tweet.id_country, clean_tweet.id FROM trash_tweet, clean_tweet WHERE trash_tweet.id = clean_tweet.id_trash AND clean_tweet.id > "
 					+ block;
 			ResultSet rsCleanTweet = cmdCleanTweet.executeQuery(qryCleanTweet);
 
-			String preparedInsClean = "INSERT INTO countries_analysis(country_id, language_id, counter, year, month) VALUES (?, ?, ?, ?, ?)";
-			PreparedStatement cmdInsert = connection
-					.prepareStatement(preparedInsClean);
-
-			analyze(countries, languages, rsCleanTweet, cmdInsert, block, cmdBlock);
+			if (rsCleanTweet.next()) {
+				analyze(countries, languages, rsCleanTweet,cmdInsert,cmdUpdate, cmdAnalysis,  block, cmdBlock);
+				Logging.logging("Correct Insert");
+			}
+			else
+				Logging.logging("No data to be entered");
 			
 			connection.commit();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Logging.logging(e.getMessage());
 		}
 
 	}
