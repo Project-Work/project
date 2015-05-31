@@ -1,12 +1,14 @@
 package ppnf.clean;
 
 import java.sql.Connection;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import ppnf.conn.JConnection;
+import ppnf.logging.Logging;;
 
 public class JCleaner {
 
@@ -76,11 +78,12 @@ public class JCleaner {
 			String queryUpdBlock = "UPDATE block_cleaner SET value = " + last + " WHERE value = " + block;
 			cmdBlock.executeUpdate(queryUpdBlock);
 			
+			Logging.logging("Correct Insert");
 			connection.commit();
 			cmdCleanTweet.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logging.logging(e.getMessage());
 		}
 
 	}
