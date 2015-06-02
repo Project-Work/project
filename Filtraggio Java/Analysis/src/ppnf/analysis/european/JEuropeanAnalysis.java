@@ -79,7 +79,7 @@ public class JEuropeanAnalysis {
 				Statement cmdEuropeanAnalysis = connection.createStatement();
 				Statement cmdInsert = connection.createStatement();
 				Statement cmdUpdate = connection.createStatement();) {
-			
+			connection.setAutoCommit(false);
 			String queryLanguages = "SELECT * FROM programming_languages";
 			ResultSet rsLanguages = cmdLanguages.executeQuery(queryLanguages);
 			
@@ -91,7 +91,8 @@ public class JEuropeanAnalysis {
 			analyze(languages, cmdCountriesAnalysis, cmdEuropeanAnalysis, cmdInsert, cmdUpdate);
 			Logging.logging("Correct Insert");
 			
-		} catch (SQLException e) {
+			connection.commit();
+			} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			Logging.logging(e.getMessage());
 		}
