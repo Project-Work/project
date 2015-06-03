@@ -47,11 +47,11 @@ public class JEuropeanAnalysis {
 		for (Language language : languages) {
 			
 			
-				String queryCountriesAnalysis = "SELECT language_id, SUM(counter)  FROM countries_analysis WHERE language_id = " + language.getId()+" GROUP BY language_id";
+				String queryCountriesAnalysis = "SELECT language_id, SUM(counter)  FROM countries_analysis WHERE language_id = " + language.getId()+" AND year= " + year +" AND month=" + month+" GROUP BY language_id";
 				ResultSet rsCountriesAnalysis = cmdCountriesAnalysis.executeQuery(queryCountriesAnalysis);
 				rsCountriesAnalysis.next();
 				
-				String queryEuropeanAnalysis = "SELECT * FROM european_analysis WHERE id_lang=" + language.getId() + " AND year= " +year +" AND month=" + month;
+				String queryEuropeanAnalysis = "SELECT * FROM european_analysis WHERE id_lang=" + language.getId() + " AND year= " + year +" AND month=" + month;
 				ResultSet rsEuropeanAnalysis = cmdEuropeanAnalysis.executeQuery(queryEuropeanAnalysis);
 				
 				int sum = rsCountriesAnalysis.getInt("sum");
